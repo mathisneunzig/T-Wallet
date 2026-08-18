@@ -7,7 +7,13 @@ void hash_pin(const char *pin, const char *salt, char *output)
     unsigned char hash[SHA256_DIGEST_LENGTH];
     char input[256];
 
-    snprintf(input, sizeof(input), "%s%s", pin, salt);
+    snprintf(
+        input,
+        sizeof(input),
+        "%s%s",
+        pin,
+        salt
+    );
 
     SHA256(
         (unsigned char *)input,
@@ -16,7 +22,11 @@ void hash_pin(const char *pin, const char *salt, char *output)
     );
 
     for (int i = 0; i < SHA256_DIGEST_LENGTH; i++) {
-        sprintf(output + (i * 2), "%02x", hash[i]);
+        sprintf(
+            output + (i * 2),
+            "%02x",
+            hash[i]
+        );
     }
 
     output[64] = '\0';

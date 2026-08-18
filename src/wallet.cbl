@@ -46,46 +46,60 @@
 
        WORKING-STORAGE SECTION.
 
-       *> Balance in smallest currency unit
-       01 WS-BALANCE PIC 9(18) VALUE 0.
+       *> Balance stored in smallest currency unit.
+       01 WS-BALANCE
+           PIC 9(18)
+           VALUE 0.
 
-       *> Currency configuration
-       01 WS-CURRENCY PIC X(3) VALUE SPACES.
-       01 WS-CURRENCY-DECIMALS PIC 9 VALUE 0.
+       01 WS-CURRENCY
+           PIC X(3)
+           VALUE SPACES.
 
-       *> User amount
-       01 WS-AMOUNT-MAJOR PIC 9(15) VALUE 0.
-       01 WS-AMOUNT-MINOR PIC 9(6) VALUE 0.
+       01 WS-CURRENCY-DECIMALS
+           PIC 9
+           VALUE 0.
 
-       *> Calculated amount in smallest unit
-       01 WS-AMOUNT PIC 9(18) VALUE 0.
+       01 WS-AMOUNT
+           PIC 9(18)
+           VALUE 0.
 
-       *> Helper for decimal conversion
-       01 WS-MULTIPLIER PIC 9(6) VALUE 1.
+       01 WS-DISPLAY-BALANCE
+           PIC X(40)
+           VALUE SPACES.
 
-       *> Display helpers
-       01 WS-DISPLAY-MAJOR PIC 9(18) VALUE 0.
-       01 WS-DISPLAY-MINOR PIC 9(6) VALUE 0.
+       01 WS-MENU-CHOICE
+           PIC 9
+           VALUE 0.
 
-       01 WS-MENU-CHOICE PIC 9 VALUE 0.
+       01 WS-WALLET-FOUND
+           PIC X
+           VALUE "N".
 
-       01 WS-WALLET-FOUND PIC X VALUE "N".
-       01 WS-END-OF-FILE PIC X VALUE "N".
+       01 WS-END-OF-FILE
+           PIC X
+           VALUE "N".
 
        01 WS-TRANSACTION.
-           05 WS-TRANSACTION-TYPE   PIC X(10).
-           05 WS-TRANSACTION-AMOUNT PIC 9(18).
+           05 WS-TRANSACTION-TYPE
+               PIC X(10).
+
+           05 WS-TRANSACTION-AMOUNT
+               PIC 9(18).
 
        LINKAGE SECTION.
 
-       01 LK-ACCOUNT-NUMBER PIC X(8).
+       01 LK-ACCOUNT-NUMBER
+           PIC X(8).
 
        PROCEDURE DIVISION
            USING LK-ACCOUNT-NUMBER.
 
-           PERFORM LOAD-WALLET
+           PERFORM LOAD-WALLET.
 
            IF WS-WALLET-FOUND = "Y"
+
+               MOVE 0
+                   TO WS-MENU-CHOICE
 
                PERFORM WALLET-MENU
                    UNTIL WS-MENU-CHOICE = 4
@@ -94,17 +108,20 @@
 
                DISPLAY "Wallet not found."
 
-           END-IF
+           END-IF.
 
            GOBACK.
 
 
        LOAD-WALLET.
 
-           MOVE "N" TO WS-WALLET-FOUND.
-           MOVE "N" TO WS-END-OF-FILE.
+           MOVE "N"
+               TO WS-WALLET-FOUND.
 
-           OPEN INPUT WALLET-FILE
+           MOVE "N"
+               TO WS-END-OF-FILE.
+
+           OPEN INPUT WALLET-FILE.
 
            PERFORM UNTIL WS-END-OF-FILE = "Y"
                OR WS-WALLET-FOUND = "Y"
@@ -112,7 +129,9 @@
                READ WALLET-FILE
 
                    AT END
-                       MOVE "Y" TO WS-END-OF-FILE
+
+                       MOVE "Y"
+                           TO WS-END-OF-FILE
 
                    NOT AT END
 
@@ -135,16 +154,17 @@
 
                END-READ
 
-           END-PERFORM
+           END-PERFORM.
 
            CLOSE WALLET-FILE.
 
 
        WALLET-MENU.
 
-           PERFORM DISPLAY-MENU
+           PERFORM DISPLAY-MENU.
 
-           PERFORM GET-MENU-CHOICE
+           DISPLAY "Choose an option: ".
+           ACCEPT WS-MENU-CHOICE.
 
            EVALUATE WS-MENU-CHOICE
 
@@ -182,17 +202,19 @@
            DISPLAY " ".
 
 
-       GET-MENU-CHOICE.
-
-           DISPLAY "Choose an option: ".
-           ACCEPT WS-MENU-CHOICE.
-
-
        DEPOSIT-MONEY.
 
-           PERFORM GET-AMOUNT.
+           MOVE 0
+               TO WS-AMOUNT.
 
-           ADD WS-AMOUNT TO WS-BALANCE.
+           CALL "MONEY"
+               USING
+                   WS-CURRENCY
+                   WS-CURRENCY-DECIMALS
+                   WS-AMOUNT.
+
+           ADD WS-AMOUNT
+               TO WS-BALANCE.
 
            MOVE "DEPOSIT"
                TO WS-TRANSACTION-TYPE.
@@ -204,14 +226,21 @@
 
            PERFORM SAVE-WALLET.
 
-           DISPLAY "Deposit successful!"
+           DISPLAY "Deposit successful!".
 
            PERFORM SHOW-BALANCE.
 
 
        WITHDRAW-MONEY.
 
-           PERFORM GET-AMOUNT.
+           MOVE 0
+               TO WS-AMOUNT.
+
+           CALL "MONEY"
+               USING
+                   WS-CURRENCY
+                   WS-CURRENCY-DECIMALS
+                   WS-AMOUNT.
 
            IF WS-BALANCE >= WS-AMOUNT
 
@@ -240,129 +269,55 @@
            END-IF.
 
 
-       GET-AMOUNT.
-
-           MOVE 0 TO WS-AMOUNT-MAJOR.
-           MOVE 0 TO WS-AMOUNT-MINOR.
-           MOVE 0 TO WS-AMOUNT.
-           MOVE 1 TO WS-MULTIPLIER.
-
-           DISPLAY " ".
-
-           DISPLAY "Amount in "
-               WS-CURRENCY.
-
-           DISPLAY "Whole amount: ".
-           ACCEPT WS-AMOUNT-MAJOR.
-
-           IF WS-CURRENCY-DECIMALS > 0
-               DISPLAY "Fractional amount: "
-               ACCEPT WS-AMOUNT-MINOR
-           END-IF
-
-           PERFORM BUILD-MULTIPLIER
-
-           COMPUTE WS-AMOUNT =
-               WS-AMOUNT-MAJOR * WS-MULTIPLIER
-               + WS-AMOUNT-MINOR.
-
-
-       BUILD-MULTIPLIER.
-
-           MOVE 1 TO WS-MULTIPLIER
-
-           EVALUATE WS-CURRENCY-DECIMALS
-
-               WHEN 0
-                   MOVE 1 TO WS-MULTIPLIER
-
-               WHEN 1
-                   MOVE 10 TO WS-MULTIPLIER
-
-               WHEN 2
-                   MOVE 100 TO WS-MULTIPLIER
-
-               WHEN 3
-                   MOVE 1000 TO WS-MULTIPLIER
-
-               WHEN 4
-                   MOVE 10000 TO WS-MULTIPLIER
-
-               WHEN 5
-                   MOVE 100000 TO WS-MULTIPLIER
-
-               WHEN 6
-                   MOVE 1000000 TO WS-MULTIPLIER
-
-               WHEN OTHER
-                   MOVE 1 TO WS-MULTIPLIER
-
-           END-EVALUATE.
-
-
        SHOW-BALANCE.
 
-           PERFORM BUILD-MULTIPLIER
+           MOVE SPACES
+               TO WS-DISPLAY-BALANCE.
 
-           DIVIDE WS-BALANCE
-               BY WS-MULTIPLIER
-               GIVING WS-DISPLAY-MAJOR
-               REMAINDER WS-DISPLAY-MINOR
-
-           DISPLAY " "
-
-           IF WS-CURRENCY-DECIMALS = 0
-
-               DISPLAY "Current balance: "
-                   WS-DISPLAY-MAJOR
-                   " "
+           CALL "MONEY-FORMAT"
+               USING
                    WS-CURRENCY
+                   WS-CURRENCY-DECIMALS
+                   WS-BALANCE
+                   WS-DISPLAY-BALANCE.
 
-           ELSE
-
-               DISPLAY "Current balance: "
-                   WS-DISPLAY-MAJOR
-                   "."
-
-               DISPLAY "Fractional units: "
-                   WS-DISPLAY-MINOR
-                   " "
-                   WS-CURRENCY
-
-           END-IF.
+           DISPLAY " ".
+           DISPLAY "Current balance: "
+               WS-DISPLAY-BALANCE.
 
 
        SAVE-TRANSACTION.
 
-           OPEN EXTEND TRANSACTION-FILE
+           OPEN EXTEND TRANSACTION-FILE.
 
            MOVE LK-ACCOUNT-NUMBER
-               TO FILE-TRANSACTION-ACCOUNT
+               TO FILE-TRANSACTION-ACCOUNT.
 
            MOVE WS-TRANSACTION-TYPE
-               TO FILE-TRANSACTION-TYPE
+               TO FILE-TRANSACTION-TYPE.
 
            MOVE WS-CURRENCY
-               TO FILE-TRANSACTION-CURRENCY
+               TO FILE-TRANSACTION-CURRENCY.
 
            MOVE WS-CURRENCY-DECIMALS
-               TO FILE-TRANSACTION-DECIMALS
+               TO FILE-TRANSACTION-DECIMALS.
 
            MOVE WS-TRANSACTION-AMOUNT
-               TO FILE-TRANSACTION-AMOUNT
+               TO FILE-TRANSACTION-AMOUNT.
 
-           WRITE TRANSACTION-RECORD
+           WRITE TRANSACTION-RECORD.
 
            CLOSE TRANSACTION-FILE.
 
 
        SAVE-WALLET.
 
-           MOVE "N" TO WS-END-OF-FILE
+           MOVE "N"
+               TO WS-END-OF-FILE.
 
-           OPEN INPUT WALLET-FILE
+           OPEN INPUT WALLET-FILE.
 
-           OPEN OUTPUT WALLET-TEMP-FILE
+           OPEN OUTPUT WALLET-TEMP-FILE.
 
            PERFORM UNTIL WS-END-OF-FILE = "Y"
 
@@ -401,12 +356,12 @@
 
                END-READ
 
-           END-PERFORM
+           END-PERFORM.
 
-           CLOSE WALLET-FILE
-
-           CLOSE WALLET-TEMP-FILE
+           CLOSE WALLET-FILE.
+           CLOSE WALLET-TEMP-FILE.
 
            CALL "system"
                USING
-               "mv data/wallets.tmp data/wallets.dat".
+                   "mv data/wallets.tmp data/wallets.dat".
+                   

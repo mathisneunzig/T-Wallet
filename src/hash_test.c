@@ -1,6 +1,10 @@
 #include <stdio.h>
 
-void hash_pin(const char *pin, const char *salt, char *output);
+void hash_pin(
+    const char *pin,
+    const char *salt,
+    char *output
+);
 
 int main(void)
 {

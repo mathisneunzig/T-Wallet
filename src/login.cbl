@@ -5,6 +5,7 @@
        INPUT-OUTPUT SECTION.
 
        FILE-CONTROL.
+
            SELECT ACCOUNT-FILE
                ASSIGN TO "data/accounts.dat"
                ORGANIZATION IS LINE SEQUENTIAL.
@@ -16,37 +17,102 @@
        FD ACCOUNT-FILE.
        01 ACCOUNT-RECORD.
            05 FILE-ACCOUNT-NUMBER PIC X(8).
-           05 FILE-SALT           PIC X(15).
            05 FILE-PIN-HASH       PIC X(64).
 
        WORKING-STORAGE SECTION.
 
-       01 WS-ACCOUNT-NUMBER PIC X(8).
-       01 WS-PIN            PIC X(4).
+       01 WS-ACCOUNT-NUMBER
+           PIC X(8).
 
-       01 WS-SALT           PIC X(15).
-       01 WS-PIN-HASH       PIC X(65).
+       01 WS-PIN
+           PIC X(4).
 
-       01 WS-ACCOUNT-FOUND  PIC X VALUE "N".
+       *> C string: 4 characters + null terminator.
+       01 WS-PIN-C
+           PIC X(5).
 
-       PROCEDURE DIVISION.
+       01 WS-SALT
+           PIC X(15)
+           VALUE "STADIUM2026SALT".
 
-           PERFORM DISPLAY-LOGIN-HEADER.
+       *> C string: 15 characters + null terminator.
+       01 WS-SALT-C
+           PIC X(16).
 
-           PERFORM GET-LOGIN-DATA.
+       01 WS-PIN-HASH
+           PIC X(65).
+
+       01 WS-ACCOUNT-FOUND
+           PIC X
+           VALUE "N".
+
+       01 WS-END-OF-FILE
+           PIC X
+           VALUE "N".
+
+       LINKAGE SECTION.
+
+       01 LK-LOGIN-SUCCESS
+           PIC X.
+
+       01 LK-ACCOUNT-NUMBER
+           PIC X(8).
+
+       PROCEDURE DIVISION
+           USING
+               LK-LOGIN-SUCCESS
+               LK-ACCOUNT-NUMBER.
+
+           MOVE "N"
+               TO LK-LOGIN-SUCCESS.
+
+           MOVE SPACES
+               TO LK-ACCOUNT-NUMBER.
+
+           DISPLAY " ".
+           DISPLAY "========================".
+           DISPLAY "     CUSTOMER LOGIN".
+           DISPLAY "========================".
+
+           DISPLAY "Account number: ".
+           ACCEPT WS-ACCOUNT-NUMBER.
+
+           DISPLAY "PIN: ".
+           ACCEPT WS-PIN.
+
+           *> Build C-compatible PIN.
+           MOVE WS-PIN
+               TO WS-PIN-C(1:4).
+
+           MOVE LOW-VALUES
+               TO WS-PIN-C(5:1).
+
+           *> Build C-compatible salt.
+           MOVE WS-SALT
+               TO WS-SALT-C(1:15).
+
+           MOVE LOW-VALUES
+               TO WS-SALT-C(16:1).
 
            PERFORM FIND-ACCOUNT.
 
            IF WS-ACCOUNT-FOUND = "Y"
 
-               PERFORM VERIFY-PIN
+               CALL "hash_pin"
+                   USING
+                       WS-PIN-C
+                       WS-SALT-C
+                       WS-PIN-HASH
 
                IF WS-PIN-HASH(1:64) = FILE-PIN-HASH
 
-                   DISPLAY "Login successful!"
+                   MOVE "Y"
+                       TO LK-LOGIN-SUCCESS
 
-                   CALL "WALLET"
-                       USING WS-ACCOUNT-NUMBER
+                   MOVE WS-ACCOUNT-NUMBER
+                       TO LK-ACCOUNT-NUMBER
+
+                   DISPLAY "Login successful!"
 
                ELSE
 
@@ -60,37 +126,28 @@
 
            END-IF.
 
-           STOP RUN.
-
-
-       DISPLAY-LOGIN-HEADER.
-
-           DISPLAY "========================".
-           DISPLAY "     STADIUM WALLET".
-           DISPLAY "========================".
-
-
-       GET-LOGIN-DATA.
-
-           DISPLAY "Account number: ".
-           ACCEPT WS-ACCOUNT-NUMBER.
-
-           DISPLAY "PIN: ".
-           ACCEPT WS-PIN.
+           GOBACK.
 
 
        FIND-ACCOUNT.
 
-           MOVE "N" TO WS-ACCOUNT-FOUND.
+           MOVE "N"
+               TO WS-ACCOUNT-FOUND.
+
+           MOVE "N"
+               TO WS-END-OF-FILE.
 
            OPEN INPUT ACCOUNT-FILE.
 
-           PERFORM UNTIL WS-ACCOUNT-FOUND = "Y"
+           PERFORM UNTIL WS-END-OF-FILE = "Y"
+               OR WS-ACCOUNT-FOUND = "Y"
 
                READ ACCOUNT-FILE
 
                    AT END
-                       EXIT PERFORM
+
+                       MOVE "Y"
+                           TO WS-END-OF-FILE
 
                    NOT AT END
 
@@ -100,9 +157,6 @@
                            MOVE "Y"
                                TO WS-ACCOUNT-FOUND
 
-                           MOVE FILE-SALT
-                               TO WS-SALT
-
                        END-IF
 
                END-READ
@@ -110,13 +164,4 @@
            END-PERFORM.
 
            CLOSE ACCOUNT-FILE.
-
-
-       VERIFY-PIN.
-
-           CALL "hash_pin"
-               USING
-                   WS-PIN
-                   WS-SALT
-                   WS-PIN-HASH.
-                   
+           
