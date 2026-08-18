@@ -5,6 +5,8 @@
 
        WORKING-STORAGE SECTION.
 
+       COPY "terminal.cpy".
+
        01 WS-MENU-CHOICE
            PIC 9
            VALUE 0.
@@ -33,11 +35,11 @@
            MOVE 0
                TO WS-MENU-CHOICE.
 
-           DISPLAY " ".
-           DISPLAY "==============================".
-           DISPLAY "          T-WALLET".
-           DISPLAY "==============================".
-           DISPLAY " ".
+           DISPLAY T-GREEN " ".
+           DISPLAY T-GREEN "==============================".
+           DISPLAY T-WHITE "          T-WALLET"
+           DISPLAY T-GREEN "==============================".
+           DISPLAY T-WHITE  " ".
            DISPLAY "1. Customer Logon".
            DISPLAY "2. Banker Logon".
            DISPLAY "3. Admin Logon".
@@ -92,4 +94,3 @@
                        WS-ACCOUNT-NUMBER
 
            END-IF.
-           
