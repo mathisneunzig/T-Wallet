@@ -21,6 +21,8 @@
 
        WORKING-STORAGE SECTION.
 
+       COPY "terminal.cpy".
+
        01 WS-ACCOUNT-NUMBER
            PIC X(8).
 
