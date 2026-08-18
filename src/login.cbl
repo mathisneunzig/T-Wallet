@@ -70,14 +70,14 @@
                TO LK-ACCOUNT-NUMBER.
 
            DISPLAY " ".
-           DISPLAY "========================".
-           DISPLAY "     CUSTOMER LOGIN".
-           DISPLAY "========================".
+           DISPLAY T-GREEN "========================".
+           DISPLAY T-GREEN "     CUSTOMER LOGIN".
+           DISPLAY T-GREEN "========================".
 
-           DISPLAY "Account number: ".
+           DISPLAY T-WHITE "Account number: ".
            ACCEPT WS-ACCOUNT-NUMBER.
 
-           DISPLAY "PIN: ".
+           DISPLAY T-WHITE "PIN: ".
            ACCEPT WS-PIN.
 
            *> Build C-compatible PIN.

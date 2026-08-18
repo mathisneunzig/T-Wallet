@@ -35,16 +35,16 @@
            MOVE 0
                TO WS-MENU-CHOICE.
 
-           DISPLAY T-GREEN " ".
+           DISPLAY T-WHITE " ".
            DISPLAY T-GREEN "==============================".
            DISPLAY T-WHITE "          T-WALLET"
            DISPLAY T-GREEN "==============================".
-           DISPLAY T-WHITE  " ".
-           DISPLAY "1. Customer Logon".
-           DISPLAY "2. Banker Logon".
-           DISPLAY "3. Admin Logon".
-           DISPLAY "4. Exit".
-           DISPLAY " ".
+           DISPLAY T-WHITE " ".
+           DISPLAY T-WHITE "1. Customer Logon".
+           DISPLAY T-WHITE "2. Banker Logon".
+           DISPLAY T-WHITE "3. Admin Logon".
+           DISPLAY T-RED   "4. Exit".
+           DISPLAY T-WHITE " ".    
 
            DISPLAY "Choose an option: ".
            ACCEPT WS-MENU-CHOICE.
