@@ -8,6 +8,9 @@
 -module(twallet_server).
 -export([start/0, start/1, stop/0]).
 -export([accept_loop/1, handle/1]).
+%% Exported for testing only
+-export([parse_json/1, parse_cobol_output/2, json_object/1,
+         json_escape/1, shell_quote/1, http_response/2]).
 
 -define(DEFAULT_PORT, 8080).
 -define(BIN_DIR, "./bin").
