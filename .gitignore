@@ -1,2 +1,5 @@
 bin/
 data/
+AGENTS.md
+*/ebin/
+*.beam
