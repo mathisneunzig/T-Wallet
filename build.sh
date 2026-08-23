@@ -8,48 +8,54 @@ echo "=============================="
 
 mkdir -p bin
 
-echo "[1/8] Compiling hash.c..."
+echo "[1/9] Compiling hash.c..."
 gcc $(pkg-config --cflags openssl) \
     -c src/hash.c \
     -o bin/hash.o
 
-echo "[2/8] Compiling login.cbl..."
+echo "[2/9] Compiling login.cbl..."
 cobc -c \
     -I src \
     src/login.cbl \
     -o bin/login.o
 
-echo "[3/8] Compiling wallet.cbl..."
+echo "[3/9] Compiling wallet.cbl..."
 cobc -c \
     -I src \
     src/wallet.cbl \
     -o bin/wallet.o
 
-echo "[4/8] Compiling money.cbl..."
+echo "[4/9] Compiling money.cbl..."
 cobc -c \
     -I src \
     src/money.cbl \
     -o bin/money.o
 
-echo "[5/8] Compiling money-format.cbl..."
+echo "[5/9] Compiling money-format.cbl..."
 cobc -c \
     -I src \
     src/money-format.cbl \
     -o bin/money-format.o
 
-echo "[6/8] Compiling banker.cbl..."
+echo "[6/9] Compiling customer.cbl..."
+cobc -c \
+    -I src \
+    src/customer.cbl \
+    -o bin/customer.o
+
+echo "[7/9] Compiling banker.cbl..."
 cobc -c \
     -I src \
     src/banker.cbl \
     -o bin/banker.o
 
-echo "[7/8] Compiling admin.cbl..."
+echo "[8/9] Compiling admin.cbl..."
 cobc -c \
     -I src \
     src/admin.cbl \
     -o bin/admin.o
 
-echo "[8/8] Compiling menu.cbl..."
+echo "[9/9] Compiling menu.cbl..."
 cobc -x \
     -I src \
     src/menu.cbl \
@@ -57,6 +63,7 @@ cobc -x \
     bin/wallet.o \
     bin/money.o \
     bin/money-format.o \
+    bin/customer.o \
     bin/banker.o \
     bin/admin.o \
     bin/hash.o \
