@@ -49,8 +49,8 @@ if [ ! -f data/customers.dat ]; then
     echo "Creating data/customers.dat..."
 
     printf '%-8s%-30s%-30s%-20s%-50s%-50s%-10s%-30s%-30s\n' \
-        '10000001' 'Jane' 'Doe' '+49123456789' \
-        'jane.doe@example.com' '123 Main Street' \
+        '10000001' 'Erika' 'Mustermann' '+49123456789' \
+        'erikamustermann@example.com' 'Musterstraße 21' \
         '10115' 'Berlin' 'Germany' \
         > data/customers.dat
 
@@ -81,5 +81,5 @@ echo ""
 echo "Demo account:"
 echo "Account number: 10000001"
 echo "PIN:            1234"
-echo "Balance:        100.00 EUR"
+echo "Balance:        10.00 EUR"
 echo ""
