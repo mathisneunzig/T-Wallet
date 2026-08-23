@@ -46,6 +46,8 @@
 
        WORKING-STORAGE SECTION.
 
+       COPY "terminal.cpy".
+
        *> Balance stored in smallest currency unit.
        01 WS-BALANCE
            PIC 9(18)
@@ -86,6 +88,40 @@
            05 WS-TRANSACTION-AMOUNT
                PIC 9(18).
 
+       *> Customer profile working-storage.
+       01 WS-CUST-OP
+           PIC X(4).
+
+       01 WS-CUST-FOUND
+           PIC X.
+
+       01 WS-CUST-FNAME
+           PIC X(30).
+
+       01 WS-CUST-LNAME
+           PIC X(30).
+
+       01 WS-CUST-PHONE
+           PIC X(20).
+
+       01 WS-CUST-EMAIL
+           PIC X(50).
+
+       01 WS-CUST-ADDRESS
+           PIC X(50).
+
+       01 WS-CUST-ZIP
+           PIC X(10).
+
+       01 WS-CUST-CITY
+           PIC X(30).
+
+       01 WS-CUST-COUNTRY
+           PIC X(30).
+
+       01 WS-PROFILE-CHOICE
+           PIC 9.
+
        LINKAGE SECTION.
 
        01 LK-ACCOUNT-NUMBER
@@ -102,11 +138,11 @@
                    TO WS-MENU-CHOICE
 
                PERFORM WALLET-MENU
-                   UNTIL WS-MENU-CHOICE = 4
+                   UNTIL WS-MENU-CHOICE = 5
 
            ELSE
 
-               DISPLAY "Wallet not found."
+               DISPLAY T-RED "Wallet not found."
 
            END-IF.
 
@@ -163,7 +199,7 @@
 
            PERFORM DISPLAY-MENU.
 
-           DISPLAY "Choose an option: ".
+           DISPLAY T-WHITE "Choose an option: ".
            ACCEPT WS-MENU-CHOICE.
 
            EVALUATE WS-MENU-CHOICE
@@ -178,28 +214,32 @@
                    PERFORM SHOW-BALANCE
 
                WHEN 4
-                   DISPLAY "Logging out..."
+                   PERFORM MY-PROFILE
+
+               WHEN 5
+                   DISPLAY T-RED "Logging out..."
 
                WHEN OTHER
-                   DISPLAY "Invalid option."
+                   DISPLAY T-RED "Invalid option."
 
            END-EVALUATE.
 
 
        DISPLAY-MENU.
 
-           DISPLAY " ".
-           DISPLAY "========================".
-           DISPLAY "       WALLET MENU".
-           DISPLAY "========================".
-           DISPLAY "Currency: " WS-CURRENCY.
-           DISPLAY "Decimals: " WS-CURRENCY-DECIMALS.
-           DISPLAY " ".
-           DISPLAY "1. Deposit money".
-           DISPLAY "2. Withdraw money".
-           DISPLAY "3. Show balance".
-           DISPLAY "4. Logout".
-           DISPLAY " ".
+           DISPLAY T-WHITE " ".
+           DISPLAY T-CYAN "========================".
+           DISPLAY T-CYAN "       WALLET MENU".
+           DISPLAY T-CYAN "========================".
+           DISPLAY T-WHITE "Currency: " WS-CURRENCY.
+           DISPLAY T-WHITE "Decimals: " WS-CURRENCY-DECIMALS.
+           DISPLAY T-WHITE " ".
+           DISPLAY T-WHITE "1. Deposit money".
+           DISPLAY T-WHITE "2. Withdraw money".
+           DISPLAY T-WHITE "3. Show balance".
+           DISPLAY T-WHITE "4. My profile".
+           DISPLAY T-RED   "5. Logout".
+           DISPLAY T-WHITE " ".
 
 
        DEPOSIT-MONEY.
@@ -226,7 +266,7 @@
 
            PERFORM SAVE-WALLET.
 
-           DISPLAY "Deposit successful!".
+           DISPLAY T-BOLD T-BLUE "Deposit successful!".
 
            PERFORM SHOW-BALANCE.
 
@@ -257,14 +297,14 @@
 
                PERFORM SAVE-WALLET
 
-               DISPLAY "Withdrawal successful!"
+               DISPLAY T-BOLD T-BLUE "Withdrawal successful!"
 
                PERFORM SHOW-BALANCE
 
            ELSE
 
-               DISPLAY "Withdrawal rejected!"
-               DISPLAY "Insufficient balance."
+               DISPLAY T-RED "Withdrawal rejected!"
+               DISPLAY T-RED "Insufficient balance."
 
            END-IF.
 
@@ -281,8 +321,8 @@
                    WS-BALANCE
                    WS-DISPLAY-BALANCE.
 
-           DISPLAY " ".
-           DISPLAY "Current balance: "
+           DISPLAY T-WHITE " ".
+           DISPLAY T-BOLD T-BLUE "Current balance: "
                WS-DISPLAY-BALANCE.
 
 
@@ -364,4 +404,124 @@
            CALL "system"
                USING
                    "mv data/wallets.tmp data/wallets.dat".
-                   
+
+
+       *> -------------------------------------------------------
+       *> My Profile: view and edit contact information.
+       *> Customer may change: phone, address, zip, city, country.
+       *> -------------------------------------------------------
+       MY-PROFILE.
+
+           MOVE "LOAD"
+               TO WS-CUST-OP.
+
+           CALL "CUSTOMER"
+               USING
+                   WS-CUST-OP
+                   WS-CUST-FOUND
+                   LK-ACCOUNT-NUMBER
+                   WS-CUST-FNAME
+                   WS-CUST-LNAME
+                   WS-CUST-PHONE
+                   WS-CUST-EMAIL
+                   WS-CUST-ADDRESS
+                   WS-CUST-ZIP
+                   WS-CUST-CITY
+                   WS-CUST-COUNTRY.
+
+           IF WS-CUST-FOUND = "N"
+
+               DISPLAY T-RED "Profile not found."
+
+           ELSE
+
+               PERFORM DISPLAY-PROFILE
+
+               DISPLAY T-WHITE " ".
+               DISPLAY T-WHITE "What to change?".
+               DISPLAY T-WHITE "1. Phone number".
+               DISPLAY T-WHITE "2. Address".
+               DISPLAY T-WHITE "3. Zip code".
+               DISPLAY T-WHITE "4. City".
+               DISPLAY T-WHITE "5. Country".
+               DISPLAY T-RED   "6. Back".
+               DISPLAY T-WHITE " ".
+               DISPLAY T-WHITE "Choose an option: "
+               ACCEPT WS-PROFILE-CHOICE
+
+               EVALUATE WS-PROFILE-CHOICE
+
+                   WHEN 1
+                       DISPLAY T-WHITE "New phone number: "
+                       ACCEPT WS-CUST-PHONE
+                       PERFORM SAVE-PROFILE
+                       DISPLAY T-BOLD T-BLUE "Phone number updated."
+
+                   WHEN 2
+                       DISPLAY T-WHITE "New address: "
+                       ACCEPT WS-CUST-ADDRESS
+                       PERFORM SAVE-PROFILE
+                       DISPLAY T-BOLD T-BLUE "Address updated."
+
+                   WHEN 3
+                       DISPLAY T-WHITE "New zip code: "
+                       ACCEPT WS-CUST-ZIP
+                       PERFORM SAVE-PROFILE
+                       DISPLAY T-BOLD T-BLUE "Zip code updated."
+
+                   WHEN 4
+                       DISPLAY T-WHITE "New city: "
+                       ACCEPT WS-CUST-CITY
+                       PERFORM SAVE-PROFILE
+                       DISPLAY T-BOLD T-BLUE "City updated."
+
+                   WHEN 5
+                       DISPLAY T-WHITE "New country: "
+                       ACCEPT WS-CUST-COUNTRY
+                       PERFORM SAVE-PROFILE
+                       DISPLAY T-BOLD T-BLUE "Country updated."
+
+                   WHEN 6
+                       CONTINUE
+
+                   WHEN OTHER
+                       DISPLAY T-RED "Invalid option."
+
+               END-EVALUATE.
+
+
+       DISPLAY-PROFILE.
+
+           DISPLAY T-WHITE " ".
+           DISPLAY T-CYAN "========================".
+           DISPLAY T-CYAN "        MY PROFILE".
+           DISPLAY T-CYAN "========================".
+           DISPLAY T-WHITE "Account: " LK-ACCOUNT-NUMBER.
+           DISPLAY T-WHITE "Name:    " WS-CUST-FNAME
+                                   " " WS-CUST-LNAME.
+           DISPLAY T-WHITE "Phone:   " WS-CUST-PHONE.
+           DISPLAY T-WHITE "Email:   " WS-CUST-EMAIL.
+           DISPLAY T-WHITE "Address: " WS-CUST-ADDRESS.
+           DISPLAY T-WHITE "Zip:     " WS-CUST-ZIP.
+           DISPLAY T-WHITE "City:    " WS-CUST-CITY.
+           DISPLAY T-WHITE "Country: " WS-CUST-COUNTRY.
+
+
+       SAVE-PROFILE.
+
+           MOVE "SAVE"
+               TO WS-CUST-OP.
+
+           CALL "CUSTOMER"
+               USING
+                   WS-CUST-OP
+                   WS-CUST-FOUND
+                   LK-ACCOUNT-NUMBER
+                   WS-CUST-FNAME
+                   WS-CUST-LNAME
+                   WS-CUST-PHONE
+                   WS-CUST-EMAIL
+                   WS-CUST-ADDRESS
+                   WS-CUST-ZIP
+                   WS-CUST-CITY
+                   WS-CUST-COUNTRY.

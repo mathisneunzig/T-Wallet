@@ -18,6 +18,7 @@
        01 ACCOUNT-RECORD.
            05 FILE-ACCOUNT-NUMBER PIC X(8).
            05 FILE-PIN-HASH       PIC X(64).
+           05 FILE-ACCOUNT-STATUS PIC X.
 
        WORKING-STORAGE SECTION.
 
@@ -100,25 +101,33 @@
 
            IF WS-ACCOUNT-FOUND = "Y"
 
-               CALL "hash_pin"
-                   USING
-                       WS-PIN-C
-                       WS-SALT-C
-                       WS-PIN-HASH
+               IF FILE-ACCOUNT-STATUS = "S"
 
-               IF WS-PIN-HASH(1:64) = FILE-PIN-HASH
-
-                   MOVE "Y"
-                       TO LK-LOGIN-SUCCESS
-
-                   MOVE WS-ACCOUNT-NUMBER
-                       TO LK-ACCOUNT-NUMBER
-
-                   DISPLAY "Login successful!"
+                   DISPLAY "Account is suspended."
 
                ELSE
 
-                   DISPLAY "Invalid PIN."
+                   CALL "hash_pin"
+                       USING
+                           WS-PIN-C
+                           WS-SALT-C
+                           WS-PIN-HASH
+
+                   IF WS-PIN-HASH(1:64) = FILE-PIN-HASH
+
+                       MOVE "Y"
+                           TO LK-LOGIN-SUCCESS
+
+                       MOVE WS-ACCOUNT-NUMBER
+                           TO LK-ACCOUNT-NUMBER
+
+                       DISPLAY "Login successful!"
+
+                   ELSE
+
+                       DISPLAY "Invalid PIN."
+
+                   END-IF
 
                END-IF
 
