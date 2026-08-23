@@ -86,6 +86,8 @@
 
        WORKING-STORAGE SECTION.
 
+       COPY "terminal.cpy".
+
        01 WS-ADMIN-USER
            PIC X(20).
 
@@ -187,28 +189,28 @@
 
        ADMIN-LOGIN.
 
-           DISPLAY " ".
-           DISPLAY "========================".
-           DISPLAY "        ADMIN LOGIN".
-           DISPLAY "========================".
+           DISPLAY T-WHITE " ".
+           DISPLAY T-MAGENTA "========================".
+           DISPLAY T-MAGENTA "        ADMIN LOGIN".
+           DISPLAY T-MAGENTA "========================".
 
-           DISPLAY "Username: ".
+           DISPLAY T-WHITE "Username: ".
            ACCEPT WS-ADMIN-USER.
 
-           DISPLAY "PIN: ".
+           DISPLAY T-WHITE "PIN: ".
            ACCEPT WS-ADMIN-PIN.
 
            *> Temporary authentication.
            IF WS-ADMIN-USER = "admin"
               AND WS-ADMIN-PIN = "1234"
 
-               DISPLAY "Admin login successful!"
+               DISPLAY T-BOLD T-BLUE "Admin login successful!"
                MOVE 0
                    TO WS-MENU-CHOICE
 
            ELSE
 
-               DISPLAY "Invalid admin credentials."
+               DISPLAY T-RED "Invalid admin credentials."
                MOVE 5
                    TO WS-MENU-CHOICE
 
@@ -217,19 +219,19 @@
 
        ADMIN-MENU.
 
-           DISPLAY " ".
-           DISPLAY "========================".
-           DISPLAY "        ADMIN MENU".
-           DISPLAY "========================".
-           DISPLAY " ".
-           DISPLAY "1. Create new account".
-           DISPLAY "2. Delete account".
-           DISPLAY "3. Suspend account".
-           DISPLAY "4. Edit customer profile".
-           DISPLAY "5. Logout".
-           DISPLAY " ".
+           DISPLAY T-WHITE " ".
+           DISPLAY T-MAGENTA "========================".
+           DISPLAY T-MAGENTA "        ADMIN MENU".
+           DISPLAY T-MAGENTA "========================".
+           DISPLAY T-WHITE " ".
+           DISPLAY T-WHITE "1. Create new account".
+           DISPLAY T-WHITE "2. Delete account".
+           DISPLAY T-WHITE "3. Suspend account".
+           DISPLAY T-WHITE "4. Edit customer profile".
+           DISPLAY T-RED   "5. Logout".
+           DISPLAY T-WHITE " ".
 
-           DISPLAY "Choose an option: ".
+           DISPLAY T-WHITE "Choose an option: ".
            ACCEPT WS-MENU-CHOICE.
 
            EVALUATE WS-MENU-CHOICE
@@ -247,63 +249,63 @@
                    PERFORM EDIT-CUSTOMER-PROFILE
 
                WHEN 5
-                   DISPLAY "Logging out..."
+                   DISPLAY T-RED "Logging out..."
 
                WHEN OTHER
-                   DISPLAY "Invalid option."
+                   DISPLAY T-RED "Invalid option."
 
            END-EVALUATE.
 
 
        CREATE-ACCOUNT.
 
-           DISPLAY " ".
-           DISPLAY "========================".
-           DISPLAY "      CREATE ACCOUNT".
-           DISPLAY "========================".
+           DISPLAY T-WHITE " ".
+           DISPLAY T-MAGENTA "========================".
+           DISPLAY T-MAGENTA "      CREATE ACCOUNT".
+           DISPLAY T-MAGENTA "========================".
 
-           DISPLAY "New account number (8 chars): ".
+           DISPLAY T-WHITE "New account number (8 chars): ".
            ACCEPT WS-NEW-ACCOUNT-NUMBER.
 
            PERFORM CHECK-ACCOUNT-EXISTS.
 
            IF WS-ACCOUNT-FOUND = "Y"
 
-               DISPLAY "Account already exists."
+               DISPLAY T-RED "Account already exists."
 
            ELSE
 
-               DISPLAY "PIN (4 digits): "
+               DISPLAY T-WHITE "PIN (4 digits): "
                ACCEPT WS-NEW-PIN
 
-               DISPLAY "Currency (3 chars, e.g. USD): "
+               DISPLAY T-WHITE "Currency (3 chars, e.g. USD): "
                ACCEPT WS-NEW-CURRENCY
 
-               DISPLAY "Decimal places (0-6): "
+               DISPLAY T-WHITE "Decimal places (0-6): "
                ACCEPT WS-NEW-DECIMALS
 
-               DISPLAY "First name: "
+               DISPLAY T-WHITE "First name: "
                ACCEPT WS-CUST-FNAME
 
-               DISPLAY "Last name: "
+               DISPLAY T-WHITE "Last name: "
                ACCEPT WS-CUST-LNAME
 
-               DISPLAY "Phone number: "
+               DISPLAY T-WHITE "Phone number: "
                ACCEPT WS-CUST-PHONE
 
-               DISPLAY "Email: "
+               DISPLAY T-WHITE "Email: "
                ACCEPT WS-CUST-EMAIL
 
-               DISPLAY "Address: "
+               DISPLAY T-WHITE "Address: "
                ACCEPT WS-CUST-ADDRESS
 
-               DISPLAY "Zip code: "
+               DISPLAY T-WHITE "Zip code: "
                ACCEPT WS-CUST-ZIP
 
-               DISPLAY "City: "
+               DISPLAY T-WHITE "City: "
                ACCEPT WS-CUST-CITY
 
-               DISPLAY "Country: "
+               DISPLAY T-WHITE "Country: "
                ACCEPT WS-CUST-COUNTRY
 
                PERFORM HASH-NEW-PIN
@@ -314,7 +316,7 @@
 
                PERFORM WRITE-NEW-CUSTOMER
 
-               DISPLAY "Account created successfully."
+               DISPLAY T-BOLD T-BLUE "Account created successfully."
 
            END-IF.
 
@@ -440,23 +442,23 @@
 
        DELETE-ACCOUNT.
 
-           DISPLAY " ".
-           DISPLAY "========================".
-           DISPLAY "      DELETE ACCOUNT".
-           DISPLAY "========================".
+           DISPLAY T-WHITE " ".
+           DISPLAY T-MAGENTA "========================".
+           DISPLAY T-MAGENTA "      DELETE ACCOUNT".
+           DISPLAY T-MAGENTA "========================".
 
-           DISPLAY "Account number to delete: ".
+           DISPLAY T-WHITE "Account number to delete: ".
            ACCEPT WS-TARGET-ACCOUNT.
 
            PERFORM VERIFY-TARGET-EXISTS.
 
            IF WS-ACCOUNT-FOUND = "N"
 
-               DISPLAY "Account not found."
+               DISPLAY T-RED "Account not found."
 
            ELSE
 
-               DISPLAY "Confirm deletion (Y/N): "
+               DISPLAY T-WHITE "Confirm deletion (Y/N): "
                ACCEPT WS-CONFIRM
 
                IF WS-CONFIRM = "Y" OR WS-CONFIRM = "y"
@@ -465,11 +467,11 @@
                    PERFORM REMOVE-WALLET-RECORD
                    PERFORM REMOVE-CUSTOMER-RECORD
 
-                   DISPLAY "Account deleted."
+                   DISPLAY T-BOLD T-BLUE "Account deleted."
 
                ELSE
 
-                   DISPLAY "Deletion cancelled."
+                   DISPLAY T-WHITE "Deletion cancelled."
 
                END-IF
 
@@ -677,12 +679,12 @@
 
        SUSPEND-ACCOUNT.
 
-           DISPLAY " ".
-           DISPLAY "========================".
-           DISPLAY "     SUSPEND ACCOUNT".
-           DISPLAY "========================".
+           DISPLAY T-WHITE " ".
+           DISPLAY T-MAGENTA "========================".
+           DISPLAY T-MAGENTA "     SUSPEND ACCOUNT".
+           DISPLAY T-MAGENTA "========================".
 
-           DISPLAY "Account number to suspend: ".
+           DISPLAY T-WHITE "Account number to suspend: ".
            ACCEPT WS-TARGET-ACCOUNT.
 
            PERFORM SET-ACCOUNT-SUSPENDED.
@@ -747,11 +749,11 @@
 
            IF WS-ACCOUNT-FOUND = "Y"
 
-               DISPLAY "Account suspended."
+               DISPLAY T-BOLD T-BLUE "Account suspended."
 
            ELSE
 
-               DISPLAY "Account not found."
+               DISPLAY T-RED "Account not found."
 
            END-IF.
 
@@ -762,8 +764,8 @@
        *> -------------------------------------------------------
        EDIT-CUSTOMER-PROFILE.
 
-           DISPLAY " ".
-           DISPLAY "Customer account number: ".
+           DISPLAY T-WHITE " ".
+           DISPLAY T-WHITE "Customer account number: ".
            ACCEPT WS-TARGET-ACCOUNT.
 
            MOVE "LOAD"
@@ -785,101 +787,101 @@
 
            IF WS-CUST-FOUND = "N"
 
-               DISPLAY "Customer profile not found."
+               DISPLAY T-RED "Customer profile not found."
 
            ELSE
 
                PERFORM DISPLAY-PROFILE
 
-               DISPLAY " ".
-               DISPLAY "What to change?".
-               DISPLAY "1. First name".
-               DISPLAY "2. Last name".
-               DISPLAY "3. Phone number".
-               DISPLAY "4. Email".
-               DISPLAY "5. Address".
-               DISPLAY "6. Zip code".
-               DISPLAY "7. City".
-               DISPLAY "8. Country".
-               DISPLAY "9. Back".
-               DISPLAY " ".
-               DISPLAY "Choose an option: "
+               DISPLAY T-WHITE " ".
+               DISPLAY T-WHITE "What to change?".
+               DISPLAY T-WHITE "1. First name".
+               DISPLAY T-WHITE "2. Last name".
+               DISPLAY T-WHITE "3. Phone number".
+               DISPLAY T-WHITE "4. Email".
+               DISPLAY T-WHITE "5. Address".
+               DISPLAY T-WHITE "6. Zip code".
+               DISPLAY T-WHITE "7. City".
+               DISPLAY T-WHITE "8. Country".
+               DISPLAY T-RED   "9. Back".
+               DISPLAY T-WHITE " ".
+               DISPLAY T-WHITE "Choose an option: "
                ACCEPT WS-PROFILE-CHOICE
 
                EVALUATE WS-PROFILE-CHOICE
 
                    WHEN 1
-                       DISPLAY "New first name: "
+                       DISPLAY T-WHITE "New first name: "
                        ACCEPT WS-CUST-FNAME
                        PERFORM SAVE-PROFILE
-                       DISPLAY "First name updated."
+                       DISPLAY T-BOLD T-BLUE "First name updated."
 
                    WHEN 2
-                       DISPLAY "New last name: "
+                       DISPLAY T-WHITE "New last name: "
                        ACCEPT WS-CUST-LNAME
                        PERFORM SAVE-PROFILE
-                       DISPLAY "Last name updated."
+                       DISPLAY T-BOLD T-BLUE "Last name updated."
 
                    WHEN 3
-                       DISPLAY "New phone number: "
+                       DISPLAY T-WHITE "New phone number: "
                        ACCEPT WS-CUST-PHONE
                        PERFORM SAVE-PROFILE
-                       DISPLAY "Phone number updated."
+                       DISPLAY T-BOLD T-BLUE "Phone number updated."
 
                    WHEN 4
-                       DISPLAY "New email: "
+                       DISPLAY T-WHITE "New email: "
                        ACCEPT WS-CUST-EMAIL
                        PERFORM SAVE-PROFILE
-                       DISPLAY "Email updated."
+                       DISPLAY T-BOLD T-BLUE "Email updated."
 
                    WHEN 5
-                       DISPLAY "New address: "
+                       DISPLAY T-WHITE "New address: "
                        ACCEPT WS-CUST-ADDRESS
                        PERFORM SAVE-PROFILE
-                       DISPLAY "Address updated."
+                       DISPLAY T-BOLD T-BLUE "Address updated."
 
                    WHEN 6
-                       DISPLAY "New zip code: "
+                       DISPLAY T-WHITE "New zip code: "
                        ACCEPT WS-CUST-ZIP
                        PERFORM SAVE-PROFILE
-                       DISPLAY "Zip code updated."
+                       DISPLAY T-BOLD T-BLUE "Zip code updated."
 
                    WHEN 7
-                       DISPLAY "New city: "
+                       DISPLAY T-WHITE "New city: "
                        ACCEPT WS-CUST-CITY
                        PERFORM SAVE-PROFILE
-                       DISPLAY "City updated."
+                       DISPLAY T-BOLD T-BLUE "City updated."
 
                    WHEN 8
-                       DISPLAY "New country: "
+                       DISPLAY T-WHITE "New country: "
                        ACCEPT WS-CUST-COUNTRY
                        PERFORM SAVE-PROFILE
-                       DISPLAY "Country updated."
+                       DISPLAY T-BOLD T-BLUE "Country updated."
 
                    WHEN 9
                        CONTINUE
 
                    WHEN OTHER
-                       DISPLAY "Invalid option."
+                       DISPLAY T-RED "Invalid option."
 
                END-EVALUATE.
 
 
        DISPLAY-PROFILE.
 
-           DISPLAY " ".
-           DISPLAY "========================".
-           DISPLAY "    CUSTOMER PROFILE".
-           DISPLAY "========================".
-           DISPLAY "Account: " WS-TARGET-ACCOUNT.
-           DISPLAY "Name:    " WS-CUST-FNAME
-                            " " WS-CUST-LNAME.
-           DISPLAY "Phone:   " WS-CUST-PHONE.
-           DISPLAY "Email:   " WS-CUST-EMAIL.
-           DISPLAY "Address: " WS-CUST-ADDRESS.
-           DISPLAY "Zip:     " WS-CUST-ZIP.
-           DISPLAY "City:    " WS-CUST-CITY.
-           DISPLAY "Country: " WS-CUST-COUNTRY.
+           DISPLAY T-WHITE " ".
+           DISPLAY T-MAGENTA "========================".
+           DISPLAY T-MAGENTA "    CUSTOMER PROFILE".
+           DISPLAY T-MAGENTA "========================".
+           DISPLAY T-WHITE "Account: " WS-TARGET-ACCOUNT.
+           DISPLAY T-WHITE "Name:    " WS-CUST-FNAME
+                                   " " WS-CUST-LNAME.
+           DISPLAY T-WHITE "Phone:   " WS-CUST-PHONE.
+           DISPLAY T-WHITE "Email:   " WS-CUST-EMAIL.
+           DISPLAY T-WHITE "Address: " WS-CUST-ADDRESS.
+           DISPLAY T-WHITE "Zip:     " WS-CUST-ZIP.
+           DISPLAY T-WHITE "City:    " WS-CUST-CITY.
+           DISPLAY T-WHITE "Country: " WS-CUST-COUNTRY.
 
 
        SAVE-PROFILE.
