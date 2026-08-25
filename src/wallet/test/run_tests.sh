@@ -5,9 +5,9 @@
 
 set -uo pipefail
 
-# ─── Locate project root (directory containing this script's parent) ──────────
+# ─── Locate project root ─────────────────────────────────────────────────────
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT="$(cd "$SCRIPT_DIR/.." && pwd)"
+PROJECT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 BIN="$PROJECT/bin"
 
 # ─── Test counters ────────────────────────────────────────────────────────────
@@ -85,29 +85,17 @@ run() {
 }
 
 # ─── Source individual test suites ────────────────────────────────────────────
-# shellcheck source=tests/auth_login_test.sh
 source "$SCRIPT_DIR/auth_login_test.sh"
-# shellcheck source=tests/wallet_balance_test.sh
 source "$SCRIPT_DIR/wallet_balance_test.sh"
-# shellcheck source=tests/wallet_deposit_test.sh
 source "$SCRIPT_DIR/wallet_deposit_test.sh"
-# shellcheck source=tests/wallet_withdraw_test.sh
 source "$SCRIPT_DIR/wallet_withdraw_test.sh"
-# shellcheck source=tests/customer_get_test.sh
 source "$SCRIPT_DIR/customer_get_test.sh"
-# shellcheck source=tests/customer_update_test.sh
 source "$SCRIPT_DIR/customer_update_test.sh"
-# shellcheck source=tests/admin_create_account_test.sh
 source "$SCRIPT_DIR/admin_create_account_test.sh"
-# shellcheck source=tests/admin_delete_account_test.sh
 source "$SCRIPT_DIR/admin_delete_account_test.sh"
-# shellcheck source=tests/admin_suspend_account_test.sh
 source "$SCRIPT_DIR/admin_suspend_account_test.sh"
-# shellcheck source=tests/banker_change_pin_test.sh
 source "$SCRIPT_DIR/banker_change_pin_test.sh"
-# shellcheck source=tests/banker_change_currency_test.sh
 source "$SCRIPT_DIR/banker_change_currency_test.sh"
-# shellcheck source=tests/stats_query_test.sh
 source "$SCRIPT_DIR/stats_query_test.sh"
 
 # ─── Main ─────────────────────────────────────────────────────────────────────

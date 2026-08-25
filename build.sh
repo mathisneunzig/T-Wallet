@@ -10,55 +10,55 @@ mkdir -p bin
 
 echo "[1/9] Compiling hash.c..."
 gcc $(pkg-config --cflags openssl) \
-    -c src/hash.c \
+    -c src/wallet/hash.c \
     -o bin/hash.o
 
 echo "[2/9] Compiling login.cbl..."
 cobc -c \
-    -I src \
-    src/login.cbl \
+    -I src/wallet \
+    src/wallet/login.cbl \
     -o bin/login.o
 
 echo "[3/9] Compiling wallet.cbl..."
 cobc -c \
-    -I src \
-    src/wallet.cbl \
+    -I src/wallet \
+    src/wallet/wallet.cbl \
     -o bin/wallet.o
 
 echo "[4/9] Compiling money.cbl..."
 cobc -c \
-    -I src \
-    src/money.cbl \
+    -I src/wallet \
+    src/wallet/money.cbl \
     -o bin/money.o
 
 echo "[5/9] Compiling money-format.cbl..."
 cobc -c \
-    -I src \
-    src/money-format.cbl \
+    -I src/wallet \
+    src/wallet/money-format.cbl \
     -o bin/money-format.o
 
 echo "[6/9] Compiling customer.cbl..."
 cobc -c \
-    -I src \
-    src/customer.cbl \
+    -I src/wallet \
+    src/wallet/customer.cbl \
     -o bin/customer.o
 
 echo "[7/9] Compiling banker.cbl..."
 cobc -c \
-    -I src \
-    src/banker.cbl \
+    -I src/wallet \
+    src/wallet/banker.cbl \
     -o bin/banker.o
 
 echo "[8/9] Compiling admin.cbl..."
 cobc -c \
-    -I src \
-    src/admin.cbl \
+    -I src/wallet \
+    src/wallet/admin.cbl \
     -o bin/admin.o
 
 echo "[9/9] Compiling menu.cbl..."
 cobc -x \
-    -I src \
-    src/menu.cbl \
+    -I src/wallet \
+    src/wallet/menu.cbl \
     bin/login.o \
     bin/wallet.o \
     bin/money.o \
@@ -80,8 +80,8 @@ compile_action_hash() {
     local name="$1"
     echo "  [action] $name"
     cobc -x -free \
-        -I src \
-        "src/actions/${name}.cbl" \
+        -I src/wallet \
+        "src/wallet/actions/${name}.cbl" \
         bin/hash.o \
         $(pkg-config --libs openssl) \
         -o "bin/${name}"
@@ -92,8 +92,8 @@ compile_action_money() {
     local name="$1"
     echo "  [action] $name"
     cobc -x -free \
-        -I src \
-        "src/actions/${name}.cbl" \
+        -I src/wallet \
+        "src/wallet/actions/${name}.cbl" \
         bin/money-format.o \
         -o "bin/${name}"
 }
@@ -103,8 +103,8 @@ compile_action() {
     local name="$1"
     echo "  [action] $name"
     cobc -x -free \
-        -I src \
-        "src/actions/${name}.cbl" \
+        -I src/wallet \
+        "src/wallet/actions/${name}.cbl" \
         -o "bin/${name}"
 }
 
@@ -127,8 +127,8 @@ echo ""
 echo "=============================="
 echo "  Compiling Erlang REST server"
 echo "=============================="
-mkdir -p rest/ebin
-erlc -o rest/ebin rest/src/twallet_server.erl
+mkdir -p src/rest/ebin
+erlc -o src/rest/ebin src/rest/twallet_server.erl
 
 echo ""
 echo "=============================="

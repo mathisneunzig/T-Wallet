@@ -6,9 +6,6 @@ import os
 import pytest
 from unittest.mock import patch, MagicMock
 
-# Ensure the project root is on the path so `stats.visualize` resolves.
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from stats.visualize import (
     fetch_raw_lines,
     parse_txn_lines,

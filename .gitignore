@@ -3,3 +3,5 @@ data/
 AGENTS.md
 */ebin/
 *.beam
+__pycache__
+*.pyc

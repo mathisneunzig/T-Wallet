@@ -24,4 +24,4 @@ if ! python3 -c "import matplotlib" 2>/dev/null; then
     echo "      To get graphical charts: pip3 install matplotlib"
 fi
 
-python3 stats/visualize.py "$BINARY"
+python3 src/stats/visualize.py "$BINARY"
