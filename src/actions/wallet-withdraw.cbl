@@ -40,11 +40,12 @@
 
        FD TRANSACTION-FILE.
        01 TRANSACTION-RECORD.
-           05 FILE-TXN-ACCOUNT  PIC X(8).
-           05 FILE-TXN-TYPE     PIC X(10).
-           05 FILE-TXN-CURRENCY PIC X(3).
-           05 FILE-TXN-DECIMALS PIC 9.
-           05 FILE-TXN-AMOUNT   PIC 9(18).
+           05 FILE-TXN-ACCOUNT   PIC X(8).
+           05 FILE-TXN-TYPE      PIC X(10).
+           05 FILE-TXN-CURRENCY  PIC X(3).
+           05 FILE-TXN-DECIMALS  PIC 9.
+           05 FILE-TXN-AMOUNT    PIC 9(18).
+           05 FILE-TXN-TIMESTAMP PIC X(19).
 
        WORKING-STORAGE SECTION.
 
@@ -62,6 +63,8 @@
        01 WS-AMOUNT         PIC 9(18).
        01 WS-MULTIPLIER     PIC 9(7) VALUE 1.
        01 WS-FORMATTED      PIC X(40) VALUE SPACES.
+       01 WS-CURRENT-DATE   PIC X(21).
+       01 WS-TIMESTAMP      PIC X(19).
 
        PROCEDURE DIVISION.
 
@@ -168,5 +171,18 @@
            MOVE WS-CURRENCY    TO FILE-TXN-CURRENCY.
            MOVE WS-DECIMALS    TO FILE-TXN-DECIMALS.
            MOVE WS-AMOUNT      TO FILE-TXN-AMOUNT.
+           MOVE FUNCTION CURRENT-DATE TO WS-CURRENT-DATE.
+           MOVE WS-CURRENT-DATE(1:4)  TO WS-TIMESTAMP(1:4).
+           MOVE "-"                   TO WS-TIMESTAMP(5:1).
+           MOVE WS-CURRENT-DATE(5:2)  TO WS-TIMESTAMP(6:2).
+           MOVE "-"                   TO WS-TIMESTAMP(8:1).
+           MOVE WS-CURRENT-DATE(7:2)  TO WS-TIMESTAMP(9:2).
+           MOVE " "                   TO WS-TIMESTAMP(11:1).
+           MOVE WS-CURRENT-DATE(9:2)  TO WS-TIMESTAMP(12:2).
+           MOVE ":"                   TO WS-TIMESTAMP(14:1).
+           MOVE WS-CURRENT-DATE(11:2) TO WS-TIMESTAMP(15:2).
+           MOVE ":"                   TO WS-TIMESTAMP(17:1).
+           MOVE WS-CURRENT-DATE(13:2) TO WS-TIMESTAMP(18:2).
+           MOVE WS-TIMESTAMP          TO FILE-TXN-TIMESTAMP.
            WRITE TRANSACTION-RECORD.
            CLOSE TRANSACTION-FILE.

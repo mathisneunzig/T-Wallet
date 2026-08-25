@@ -52,7 +52,8 @@ RUN cobc -x -free -I src src/actions/wallet-balance.cbl \
     && cobc -x -free -I src src/actions/customer-update.cbl -o bin/customer-update \
     && cobc -x -free -I src src/actions/admin-delete-account.cbl  -o bin/admin-delete-account \
     && cobc -x -free -I src src/actions/admin-suspend-account.cbl -o bin/admin-suspend-account \
-    && cobc -x -free -I src src/actions/banker-change-currency.cbl -o bin/banker-change-currency
+    && cobc -x -free -I src src/actions/banker-change-currency.cbl -o bin/banker-change-currency \
+    && cobc -x -free -I src src/actions/stats-query.cbl -o bin/stats-query
 
 # Compile Erlang REST server.
 RUN mkdir -p rest/ebin \
