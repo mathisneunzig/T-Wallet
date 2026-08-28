@@ -91,6 +91,7 @@ source "$SCRIPT_DIR/auth_login_test.sh"
 source "$SCRIPT_DIR/wallet_balance_test.sh"
 source "$SCRIPT_DIR/wallet_deposit_test.sh"
 source "$SCRIPT_DIR/wallet_withdraw_test.sh"
+source "$SCRIPT_DIR/wallet_transfer_test.sh"
 source "$SCRIPT_DIR/customer_get_test.sh"
 source "$SCRIPT_DIR/customer_update_test.sh"
 source "$SCRIPT_DIR/admin_create_account_test.sh"
@@ -114,6 +115,8 @@ echo ""
 test_wallet_deposit
 echo ""
 test_wallet_withdraw
+echo ""
+test_wallet_transfer
 echo ""
 test_customer_get
 echo ""

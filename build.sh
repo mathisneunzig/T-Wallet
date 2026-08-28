@@ -115,6 +115,7 @@ compile_action_hash  "banker-change-pin"
 compile_action_money "wallet-balance"
 compile_action_money "wallet-deposit"
 compile_action_money "wallet-withdraw"
+compile_action_money "wallet-transfer"
 
 compile_action       "customer-get"
 compile_action       "customer-update"
@@ -122,6 +123,20 @@ compile_action       "admin-delete-account"
 compile_action       "admin-suspend-account"
 compile_action       "banker-change-currency"
 compile_action       "stats-query"
+
+echo ""
+echo "=============================="
+echo "  Compiling FORTRAN utilities"
+echo "=============================="
+echo "  [fortran] transfer_fee"
+gfortran -o bin/transfer_fee src/wallet/transfer_fee.f90
+
+echo ""
+echo "=============================="
+echo "  Copying Lua scripts"
+echo "=============================="
+echo "  [lua] transfer_summary"
+cp src/wallet/transfer_summary.lua bin/transfer_summary.lua
 
 echo ""
 echo "=============================="

@@ -299,6 +299,47 @@ dispatch("POST", ["api", "banker", "accounts"], Body) ->
     run_action("admin-create-account", Args,
                fun([Acc]) -> json_ok([{"account", Acc}]) end);
 
+%% POST /api/wallet/:account/transfer
+dispatch("POST", ["api", "wallet", Account, "transfer"], Body) ->
+    J     = parse_json(Body),
+    To    = get_field("to", J),
+    Whole = get_field("whole", J),
+    Frac  = get_field_default("fraction", J, "0"),
+    run_action("wallet-transfer", [Account, To, Whole, Frac],
+               fun([From, ToAcc, FromBal, ToBal, FromFmt, ToFmt, FeeRaw]) ->
+                   Summary = get_transfer_summary(From, ToAcc,
+                                 string:strip(FromFmt), string:strip(ToFmt)),
+                   json_ok([{"from",           From},
+                            {"to",             ToAcc},
+                            {"from_balance",   FromBal},
+                            {"to_balance",     ToBal},
+                            {"from_formatted", string:strip(FromFmt)},
+                            {"to_formatted",   string:strip(ToFmt)},
+                            {"fee_raw",        FeeRaw},
+                            {"summary",        Summary}])
+               end);
+
+%% POST /api/banker/transfer
+dispatch("POST", ["api", "banker", "transfer"], Body) ->
+    J     = parse_json(Body),
+    From  = get_field("from", J),
+    To    = get_field("to", J),
+    Whole = get_field("whole", J),
+    Frac  = get_field_default("fraction", J, "0"),
+    run_action("wallet-transfer", [From, To, Whole, Frac],
+               fun([FromAcc, ToAcc, FromBal, ToBal, FromFmt, ToFmt, FeeRaw]) ->
+                   Summary = get_transfer_summary(FromAcc, ToAcc,
+                                 string:strip(FromFmt), string:strip(ToFmt)),
+                   json_ok([{"from",           FromAcc},
+                            {"to",             ToAcc},
+                            {"from_balance",   FromBal},
+                            {"to_balance",     ToBal},
+                            {"from_formatted", string:strip(FromFmt)},
+                            {"to_formatted",   string:strip(ToFmt)},
+                            {"fee_raw",        FeeRaw},
+                            {"summary",        Summary}])
+               end);
+
 %% GET /qr/:account  — HTML payment page with live QR
 dispatch("GET", ["qr", Account], _) ->
     run_action("wallet-balance", [Account],
@@ -360,6 +401,17 @@ parse_cobol_output(Raw, SuccessFun) ->
         _ ->
             json_error("INTERNAL", "Unexpected output: " ++ Raw)
     end.
+
+%% get_transfer_summary(From, To, FromFormatted, ToFormatted)
+%%   Calls the Lua transfer_summary script to produce a human-readable
+%%   summary line returned in the transfer JSON response.
+get_transfer_summary(From, To, FromFmt, ToFmt) ->
+    Cmd = "lua " ++ ?BIN_DIR ++ "/transfer_summary.lua " ++
+          shell_quote(From) ++ " " ++
+          shell_quote(To)   ++ " " ++
+          shell_quote(FromFmt) ++ " " ++
+          shell_quote(ToFmt),
+    string:strip(os:cmd(Cmd), both, $\n).
 
 %%% ============================================================
 %%% JSON helpers  (minimal hand-rolled, no deps)
