@@ -5,3 +5,4 @@ AGENTS.md
 *.beam
 __pycache__
 *.pyc
+erl_crash.dump
