@@ -10,7 +10,8 @@
 -export([accept_loop/1, handle/1]).
 %% Exported for testing only
 -export([parse_json/1, parse_cobol_output/2, json_object/1,
-         json_escape/1, shell_quote/1, http_response/2]).
+         json_escape/1, shell_quote/1, http_response/2,
+         build_payment_uri/4, parse_query_string/1]).
 
 -define(DEFAULT_PORT, 8080).
 -define(BIN_DIR, "./bin").
@@ -298,6 +299,36 @@ dispatch("POST", ["api", "banker", "accounts"], Body) ->
     run_action("admin-create-account", Args,
                fun([Acc]) -> json_ok([{"account", Acc}]) end);
 
+%% GET /qr/:account  — HTML payment page with live QR
+dispatch("GET", ["qr", Account], _) ->
+    run_action("wallet-balance", [Account],
+               fun([Acc, Currency, Decimals, _RawBal, Formatted]) ->
+                   Html = qr_html_page(Acc,
+                                       string:strip(Currency),
+                                       string:strip(Decimals),
+                                       string:strip(Formatted)),
+                   http_response_binary("text/html", list_to_binary(Html))
+               end);
+
+%% GET /api/wallet/:account/qr[?amount=X]  — raw PNG QR code
+dispatch("GET", ["api", "wallet", AccountRaw, "qr"], _) ->
+    {Account, QS}   = split_path_qs(AccountRaw),
+    Params          = parse_query_string(QS),
+    AmountStr       = proplists:get_value("amount", Params, ""),
+    run_action("wallet-balance", [Account],
+               fun([Acc, Currency, Decimals, _RawBal, _Fmt]) ->
+                   Uri = build_payment_uri(Acc,
+                                          string:strip(Currency),
+                                          string:strip(Decimals),
+                                          AmountStr),
+                   case run_qrencode(Uri) of
+                       {ok, PngBytes} ->
+                           http_response_binary("image/png", PngBytes);
+                       {error, Reason} ->
+                           json_error("QR_FAILED", Reason)
+                   end
+               end);
+
 %% Fallback
 dispatch(Method, Path, _) ->
     Msg = "No route: " ++ Method ++ " /" ++
@@ -379,8 +410,127 @@ http_response(Status, Body) ->
         Body
     ]).
 
+http_response_binary(ContentType, Body) when is_binary(Body) ->
+    iolist_to_binary([
+        "HTTP/1.1 200 OK\r\n",
+        "Content-Type: ", ContentType, "\r\n",
+        "Content-Length: ", integer_to_list(byte_size(Body)), "\r\n",
+        "Connection: close\r\n",
+        "\r\n",
+        Body
+    ]).
+
 send_response(Sock, Response) ->
     gen_tcp:send(Sock, Response).
+
+%%% ============================================================
+%%% QR code helpers
+%%% ============================================================
+
+%% Build the payment URI encoded into the QR code.
+build_payment_uri(Account, Currency, Decimals, Amount) ->
+    Base = "twallet://pay?to=" ++ Account
+        ++ "&currency=" ++ Currency
+        ++ "&decimals=" ++ Decimals,
+    case Amount of
+        "" -> Base;
+        _  -> Base ++ "&amount=" ++ Amount
+    end.
+
+%% Run qrencode and return raw PNG bytes.
+run_qrencode(Uri) ->
+    Cmd = "qrencode -o - -t PNG -s 6 -m 2 " ++ shell_quote(Uri),
+    Port = open_port({spawn, Cmd}, [binary, eof, stderr_to_stdout]),
+    collect_port(Port, <<>>).
+
+collect_port(Port, Acc) ->
+    receive
+        {Port, {data, Data}} ->
+            collect_port(Port, <<Acc/binary, Data/binary>>);
+        {Port, eof} ->
+            port_close(Port),
+            case Acc of
+                <<>> -> {error, "qrencode produced no output"};
+                _    -> {ok, Acc}
+            end
+    after 5000 ->
+        port_close(Port),
+        {error, "qrencode timed out"}
+    end.
+
+%% Split "segment?key=val" into {"segment", "key=val"}.
+split_path_qs(Segment) ->
+    case string:split(Segment, "?") of
+        [Path, QS] -> {Path, QS};
+        [Path]     -> {Path, ""}
+    end.
+
+%% Parse "key=val&key2=val2" into [{key, val}].
+parse_query_string("") -> [];
+parse_query_string(QS) ->
+    Pairs = string:tokens(QS, "&"),
+    lists:filtermap(fun(Pair) ->
+        case string:split(Pair, "=") of
+            [K, V] -> {true, {K, V}};
+            _      -> false
+        end
+    end, Pairs).
+
+%% HTML page for /qr/:account
+qr_html_page(Account, Currency, _Decimals, Formatted) ->
+    ApiBase = "/api/wallet/" ++ Account ++ "/qr",
+    "<!DOCTYPE html>"
+    "<html lang=\"en\">"
+    "<head>"
+      "<meta charset=\"utf-8\">"
+      "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
+      "<title>T-Wallet &mdash; Pay " ++ Account ++ "</title>"
+      "<style>"
+        "body{font-family:system-ui,sans-serif;background:#0f0f0f;color:#f0f0f0;"
+          "display:flex;flex-direction:column;align-items:center;"
+          "justify-content:center;min-height:100vh;margin:0;padding:1rem;box-sizing:border-box}"
+        "h1{font-size:1.4rem;margin:0 0 .25rem}"
+        "p.sub{color:#888;margin:0 0 1.5rem;font-size:.9rem}"
+        ".card{background:#1a1a1a;border-radius:1rem;padding:1.5rem 2rem;"
+          "box-shadow:0 4px 24px #0008;max-width:340px;width:100%;text-align:center}"
+        ".info{margin-bottom:1rem;font-size:.95rem;color:#ccc}"
+        ".info strong{color:#fff}"
+        "label{display:block;font-size:.85rem;color:#888;margin-bottom:.35rem;text-align:left}"
+        "input[type=number]{width:100%;box-sizing:border-box;padding:.6rem .8rem;"
+          "border-radius:.5rem;border:1px solid #333;background:#111;color:#fff;"
+          "font-size:1rem;margin-bottom:1.2rem}"
+        "#qr-wrapper{background:#fff;border-radius:.75rem;padding:.75rem;display:inline-block}"
+        "#qr-wrapper img{display:block;width:220px;height:220px}"
+        ".hint{margin-top:1rem;font-size:.8rem;color:#666}"
+        ".currency{color:#4af;font-weight:bold}"
+      "</style>"
+    "</head>"
+    "<body>"
+      "<div class=\"card\">"
+        "<h1>T-Wallet</h1>"
+        "<p class=\"sub\">Payment QR Code</p>"
+        "<div class=\"info\">"
+          "Account: <strong>" ++ Account ++ "</strong><br>"
+          "Balance: <strong><span class=\"currency\">" ++ Formatted ++ " " ++ Currency ++ "</span></strong>"
+        "</div>"
+        "<label for=\"amt\">Amount (optional)</label>"
+        "<input type=\"number\" id=\"amt\" min=\"0\" step=\"0.01\""
+          " placeholder=\"Leave blank for any amount\""
+          " oninput=\"updateQr()\">"
+        "<div id=\"qr-wrapper\">"
+          "<img id=\"qr\" src=\"" ++ ApiBase ++ "\" alt=\"QR code\">"
+        "</div>"
+        "<p class=\"hint\">Scan with your phone to pay</p>"
+      "</div>"
+      "<script>"
+        "function updateQr(){"
+          "var amt=document.getElementById('amt').value;"
+          "var base='" ++ ApiBase ++ "';"
+          "document.getElementById('qr').src=amt?base+'?amount='+encodeURIComponent(amt):base;"
+        "}"
+      "</script>"
+    "</body>"
+    "</html>".
 
 %%% ============================================================
 %%% Minimal JSON parser  (key-value strings only)

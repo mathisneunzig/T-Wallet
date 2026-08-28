@@ -25,11 +25,13 @@ erlc -o src/rest/ebin \
     src/rest/test/json_helpers_tests.erl \
     src/rest/test/shell_quote_tests.erl \
     src/rest/test/http_response_tests.erl \
-    src/rest/test/integration_tests.erl
+    src/rest/test/integration_tests.erl \
+    src/rest/test/qr_tests.erl
 erl -noshell -pa src/rest/ebin \
     -eval "case eunit:test([parse_json_tests, parse_cobol_output_tests,
                             json_helpers_tests, shell_quote_tests,
-                            http_response_tests, integration_tests],
+                            http_response_tests, integration_tests,
+                            qr_tests],
                            [verbose]) of ok -> init:stop(0); _ -> init:stop(1) end" \
     || EXIT=1
 

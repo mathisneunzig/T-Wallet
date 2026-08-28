@@ -22,6 +22,7 @@ assert_eq() {
     local label="$1" expected="$2" actual="$3"
     if [ "$actual" = "$expected" ]; then
         echo "  PASS: $label"
+        echo "        got:      $actual"
         (( PASS++ )) || true
     else
         echo "  FAIL: $label"
@@ -37,6 +38,7 @@ assert_prefix() {
     local label="$1" prefix="$2" actual="$3"
     if [[ "$actual" == "$prefix"* ]]; then
         echo "  PASS: $label"
+        echo "        got:      $actual"
         (( PASS++ )) || true
     else
         echo "  FAIL: $label"
